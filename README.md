@@ -69,7 +69,30 @@ uvicorn main:app --reload
 
 
 
+## API structure
 
+app/
+ ├── main.py
+ ├── api/
+ │   ├── create_user/         # 🟡 endpoint: POST /users
+ │   │   ├── router.py        # API router
+ │   │   ├── schema.py        # Pydantic response/request schema
+ │   │   ├── crud.py          # DB related logic
+ │   ├── update_user/         # 🟡 endpoint: PUT /users/{id}
+ │   │   ├── router.py
+ │   │   ├── schema.py
+ │   │   ├── crud.py
+ │   ├── get_users/           # 🟡 endpoint: GET /users
+ │   │   ├── router.py
+ │   │   ├── schema.py
+ │   │   ├── crud.py
+ │   ├── delete_user/         # 🟡 endpoint: DELETE /users/{id}
+ │   │   ├── router.py
+ │   │   ├── schema.py
+ │   │   ├── crud.py
+ │   ├── share_crud.py        # 🟡 DB related share logic
+ │   ├── share_schema.py      # 🟡 Pydantic share response/request schema
+ 
 
 
 
