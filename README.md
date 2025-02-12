@@ -49,4 +49,29 @@ https://universe.roboflow.com/
 
 # backend
 
+## FastAPI
+
+### run
+```bash
+cd backend/app
+```
+
+```bash
+fastapi dev main.py
+```
+
+or 
+
+```bash
+uvicorn main:app --reload
+```
+
+
+
+
+
+
+
+
+
 # frontend
