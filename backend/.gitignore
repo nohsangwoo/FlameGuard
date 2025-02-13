@@ -176,3 +176,11 @@ cython_debug/
 
 # db
 *.db
+
+
+# temp
+temp/
+
+# log
+log/
+
