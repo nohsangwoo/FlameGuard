@@ -15,8 +15,3 @@ class PredictFireSchema(BaseModel):
     detections: List[Detection]
     result_image: Union[str, None]
     date: str
-
-
-
-class GetTest2Schema(BaseModel):
-    message: str

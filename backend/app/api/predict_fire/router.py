@@ -1,6 +1,6 @@
 import uuid
 from fastapi import APIRouter, HTTPException, File, UploadFile, Depends
-from app.api.predict_fire.schema import Detection, GetTest2Schema, PredictFireSchema
+from app.api.predict_fire.schema import Detection, PredictFireSchema
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from datetime import datetime
@@ -164,9 +164,3 @@ async def predict_fire(
         #         logger.info(f"Successfully deleted temp file: {temp_file_path}")
         #     except Exception as e:
         #         logger.error(f"Failed to delete temp file: {str(e)}")
-
-
-@router.get("/predict_test", response_model=GetTest2Schema)
-async def predict_test():
-    logger.info("--------------------------------")
-    return {"message": "test22"}
