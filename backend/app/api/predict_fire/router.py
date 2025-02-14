@@ -12,7 +12,8 @@ import pytz  # new import
 import time
 import cv2
 
-# from app.db.models import detection_log
+from app.api.predict_fire.crud import create_detection_log
+
 
 router = APIRouter()
 
@@ -40,7 +41,7 @@ def generate_random_file_name(filename: str) -> str:
 @router.post("/predict_fire", response_model=PredictFireSchema)
 async def predict_fire(
     file: UploadFile = File(...),
-    # db: Session = Depends(get_db),
+    db: Session = Depends(get_db),
     # current_user=Depends(get_current_user),  # get current user info
 ):
     logger.info("--------------------------------")
@@ -117,7 +118,7 @@ async def predict_fire(
 
             # upload to S3 or other external storage and get file key (later)
             # result_file_key = uploadImageToAWS.usingFilePath(log_file_path)
-            result_file_key = "some key"  # temporary value
+            result_file_key = new_file_name  # temporary value
 
             resResult = {
                 "message": "fire detected",
@@ -143,10 +144,8 @@ async def predict_fire(
                 "date": current_time,
             }
 
-        # save detection log (later)
-        # detection_log.create_detection_log(
-        #     db=db, user_id=current_user.id, detection_data=resResult
-        # )
+        # save detection log
+        create_detection_log(db=db, detection_data=resResult)
 
         logger.info(f"Response result: {resResult}")
         return resResult

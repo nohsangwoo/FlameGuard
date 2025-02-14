@@ -18,9 +18,9 @@ class DetectionLog(Base):
     __tablename__ = "detection_logs"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(
-        Integer, ForeignKey("users.id"), nullable=False
-    )  # User 모델과의 관계 설정
+    # user_id = Column(
+    #     Integer, ForeignKey("users.id"), nullable=False
+    # )  # User 모델과의 관계 설정
     file_name = Column(String)  # 원본 이미지 파일명
     result_image = Column(String)  # 처리된 결과 이미지 경로
     detections = Column(JSON)  # 감지된 객체들의 정보 (class_name, confidence, bbox 등)
@@ -32,4 +32,4 @@ class DetectionLog(Base):
     )
 
     # User 모델과의 관계 설정
-    user = relationship("User", back_populates="detection_logs")
+    # user = relationship("User", back_populates="detection_logs")

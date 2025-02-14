@@ -24,4 +24,4 @@ class User(Base):
     expired_at = Column(DateTime(timezone=True)) # 서비스 만료일
 
     # DetectionLog와의 관계 설정
-    detection_logs = relationship("DetectionLog", back_populates="user")
+    # detection_logs = relationship("DetectionLog", back_populates="user")
