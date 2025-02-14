@@ -18,6 +18,8 @@ from app.db.models import (
     detection_log as detection_log_model,
 )
 
+from fastapi.staticfiles import StaticFiles
+
 
 def init_db():
     Base.metadata.create_all(bind=engine)
@@ -37,9 +39,6 @@ app = FastAPI(lifespan=lifespan)
 
 api_dir = Path(__file__).parent / "api"
 
-
-print(api_dir)
-
 # auto import router
 for api in api_dir.iterdir():
     if api.is_dir():  # folder(each endpoint)
@@ -53,3 +52,8 @@ for api in api_dir.iterdir():
             if api.name == "__pycache__" or api.name == "__init__":
                 continue
             print(f"⚠️ {router_module} not found (router.py is missing)")
+
+
+# serve log folder as static files
+log_directory = os.path.join(os.path.dirname(__file__), "log")
+app.mount("/log", StaticFiles(directory=log_directory), name="log")
