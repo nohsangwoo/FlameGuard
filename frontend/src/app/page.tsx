@@ -65,7 +65,7 @@ export default function Home() {
 
       console.log('sending request to server...')
 
-      const response = await fetch('http://localhost:8000/predic_fire', {
+      const response = await fetch('http://localhost:8000/predict_fire', {
         method: 'POST',
         body: formData,
       })
