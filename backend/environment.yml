@@ -1,4 +1,4 @@
-name: flameguard2
+name: flameguard
 channels:
   - conda-forge
   - defaults
