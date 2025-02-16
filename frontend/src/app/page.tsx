@@ -8,6 +8,7 @@ export default function Home() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isStreaming, setIsStreaming] = useState(false);
   const [isPolling, setIsPolling] = useState(false);
+  
   const [audioPermission, setAudioPermission] = useState(false);
   const audioContextRef = useRef<AudioContext | null>(null);
   const gainNodeRef = useRef<GainNode | null>(null);
@@ -99,41 +100,43 @@ export default function Home() {
     retry: false,
   });
 
-
-  // 오디오 컨텍스트 초기화 함수
-  const initAudioContext = () => {
+  const initAudioContext = async () => {
     try {
-      if (!audioContextRef.current) {
+      if (!audioPermission) {
+        const userConsent = window.confirm("fire alarm requires audio permission. allow?");
+        if (!userConsent) {
+          return false;
+        }
+
         const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
         audioContextRef.current = new AudioContext();
 
         // iOS Safari를 위한 처리
         if (audioContextRef.current.state === 'suspended') {
-          audioContextRef.current.resume();
+          await audioContextRef.current.resume();
         }
 
         setAudioPermission(true);
+        return true;
       }
+      return true;
     } catch (error) {
-      console.error("오디오 초기화 오류:", error);
-      alert("오디오 기능 초기화에 실패했습니다.");
+      console.error("audio initialization error:", error);
+      alert("audio initialization failed.");
+      return false;
     }
   };
 
-
-
-  
-    // 알람 중지
-    const stopAlertSound = () => {
-      if (sourceNodeRef.current) {
-          sourceNodeRef.current.stop();
-          sourceNodeRef.current.disconnect();
-      }
-      if (gainNodeRef.current) {
-          gainNodeRef.current.disconnect();
-      }
+  // 알람 중지
+  const stopAlertSound = () => {
+    if (sourceNodeRef.current) {
+        sourceNodeRef.current.stop();
+        sourceNodeRef.current.disconnect();
+    }
+    if (gainNodeRef.current) {
+        gainNodeRef.current.disconnect();
+    }
   };
-
 
   // 공습경보 사운드 생성 및 재생
   const playAlertSound = () => {
@@ -164,36 +167,77 @@ export default function Home() {
   // 화재 감지 시 알림 및 효과
   useEffect(() => {
     if (predictionData?.message === "fire detected") {
-      alert("화재가 감지되었습니다!");
       playAlertSound();
-      // 테두리 반짝임 효과 추가
+      
+      // 화면 전체 플래시 효과를 위한 요소
+      const flashOverlay = document.createElement('div');
+      flashOverlay.className = 'fixed inset-0 pointer-events-none animate-screenFlash';
+      document.body.appendChild(flashOverlay);
+      
       const alertElement = document.createElement('div');
-      alertElement.textContent = "화재 감지!";
-      alertElement.style.position = 'fixed';
-      alertElement.style.bottom = '20px';
-      alertElement.style.right = '20px';
-      alertElement.style.padding = '10px';
-      alertElement.style.backgroundColor = 'red';
-      alertElement.style.color = 'white';
-      alertElement.style.border = '2px solid red';
-      alertElement.style.animation = 'blink 1s infinite';
+      alertElement.innerHTML = `
+        <div class="flex items-center gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2c0 6-8 7.5-8 14a8 8 0 0 0 16 0c0-6.5-8-8-8-14z"/>
+          </svg>
+          <div>
+            <div class="font-semibold mb-0.5">화재 감지</div>
+            <div class="text-sm opacity-90">화재가 감지되었습니다. 즉시 확인해주세요.</div>
+          </div>
+        </div>
+      `;
+      
+      alertElement.className = `
+        fixed bottom-6 right-6 p-4
+        bg-red-500/90 text-white
+        rounded-xl
+        shadow-lg
+        backdrop-blur-md
+        max-w-[400px] z-[9999]
+        font-sans
+        animate-slideIn animate-pulse animate-flashBorder
+      `;
+
       document.body.appendChild(alertElement);
 
+      const timeout = setTimeout(() => {
+        if (document.body.contains(alertElement)) {
+          alertElement.classList.remove('animate-slideIn');
+          alertElement.classList.add('animate-slideOut');
+          flashOverlay.remove();
+          setTimeout(() => {
+            document.body.removeChild(alertElement);
+          }, 500);
+        }
+      }, 10000);
+
       return () => {
-        document.body.removeChild(alertElement);
+        clearTimeout(timeout);
+        if (document.body.contains(alertElement)) {
+          document.body.removeChild(alertElement);
+        }
+        if (document.body.contains(flashOverlay)) {
+          flashOverlay.remove();
+        }
       };
     }
   }, [predictionData]);
 
   const startPredict = async () => {
     try {
+      const audioInitialized = await initAudioContext();
+      if (!audioInitialized) {
+        console.log('오디오 권한이 거부되었습니다.');
+        return;
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { deviceId: selectedDevice },
       });
-      initAudioContext();
+      
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        await videoRef.current.play(); // wait for video playing
+        await videoRef.current.play();
         setIsStreaming(true);
         setIsPolling(true);
         console.log('streaming started');
@@ -236,14 +280,14 @@ export default function Home() {
             onClick={startPredict}
             className="block px-4 py-2 bg-blue-500 text-white rounded"
           >
-            시작하기
+            start stream
           </button>
         ) : (
           <button
             onClick={stopPredict}
             className="block px-4 py-2 bg-red-500 text-white rounded"
           >
-            정지하기
+            stop stream
           </button>
         )}
       </div>
@@ -258,11 +302,3 @@ export default function Home() {
     </div>
   );
 }
-
-// CSS 추가
-<style jsx>{`
-  @keyframes blink {
-    0%, 100% { border-color: red; }
-    50% { border-color: transparent; }
-  }
-`}</style>
