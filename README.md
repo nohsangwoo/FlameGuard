@@ -7,6 +7,7 @@
 ```bash
 conda env list
 # In backend directory
+cd backend
 conda create -n flameguard python=3.9 --file requirements.txt
 conda activate flameguard
 conda deactivate
@@ -77,6 +78,7 @@ app/
 
 ## Frontend
 ```bash
+cd frontend
 pnpm install
 pnpm run dev
 ```
