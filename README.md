@@ -8,7 +8,7 @@
 conda env list
 # In backend directory
 cd backend
-conda create -n flameguard python=3.9 --file requirements.txt
+conda env create -f environment.yml
 conda activate flameguard
 conda deactivate
 conda env remove --name flameguard
