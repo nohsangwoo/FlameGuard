@@ -8,6 +8,10 @@ export default function Home() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isStreaming, setIsStreaming] = useState(false);
   const [isPolling, setIsPolling] = useState(false);
+  const [audioPermission, setAudioPermission] = useState(false);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const gainNodeRef = useRef<GainNode | null>(null);
+  const sourceNodeRef = useRef<OscillatorNode | null>(null);
 
   // get camera devices
   useEffect(() => {
@@ -96,12 +100,97 @@ export default function Home() {
   });
 
 
+  // 오디오 컨텍스트 초기화 함수
+  const initAudioContext = () => {
+    try {
+      if (!audioContextRef.current) {
+        const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+        audioContextRef.current = new AudioContext();
+
+        // iOS Safari를 위한 처리
+        if (audioContextRef.current.state === 'suspended') {
+          audioContextRef.current.resume();
+        }
+
+        setAudioPermission(true);
+      }
+    } catch (error) {
+      console.error("오디오 초기화 오류:", error);
+      alert("오디오 기능 초기화에 실패했습니다.");
+    }
+  };
+
+
+
+  
+    // 알람 중지
+    const stopAlertSound = () => {
+      if (sourceNodeRef.current) {
+          sourceNodeRef.current.stop();
+          sourceNodeRef.current.disconnect();
+      }
+      if (gainNodeRef.current) {
+          gainNodeRef.current.disconnect();
+      }
+  };
+
+
+  // 공습경보 사운드 생성 및 재생
+  const playAlertSound = () => {
+    if (!audioContextRef.current) return;
+    stopAlertSound();
+
+    const oscillator = audioContextRef.current.createOscillator();
+    gainNodeRef.current = audioContextRef.current.createGain();
+
+    oscillator.type = 'sawtooth';
+    oscillator.frequency.setValueAtTime(440, audioContextRef.current.currentTime);
+
+    // 주파수 변조
+    oscillator.frequency.setValueAtTime(440, audioContextRef.current.currentTime);
+    oscillator.frequency.linearRampToValueAtTime(880, audioContextRef.current.currentTime + 0.5);
+    oscillator.frequency.linearRampToValueAtTime(440, audioContextRef.current.currentTime + 1);
+
+    // 볼륨 조절
+    gainNodeRef.current.gain.setValueAtTime(0.5, audioContextRef.current.currentTime);
+
+    oscillator.connect(gainNodeRef.current);
+    gainNodeRef.current.connect(audioContextRef.current.destination);
+
+    oscillator.start();
+    sourceNodeRef.current = oscillator; // OscillatorNode로 할당
+  };
+
+  // 화재 감지 시 알림 및 효과
+  useEffect(() => {
+    if (predictionData?.message === "fire detected") {
+      alert("화재가 감지되었습니다!");
+      playAlertSound();
+      // 테두리 반짝임 효과 추가
+      const alertElement = document.createElement('div');
+      alertElement.textContent = "화재 감지!";
+      alertElement.style.position = 'fixed';
+      alertElement.style.bottom = '20px';
+      alertElement.style.right = '20px';
+      alertElement.style.padding = '10px';
+      alertElement.style.backgroundColor = 'red';
+      alertElement.style.color = 'white';
+      alertElement.style.border = '2px solid red';
+      alertElement.style.animation = 'blink 1s infinite';
+      document.body.appendChild(alertElement);
+
+      return () => {
+        document.body.removeChild(alertElement);
+      };
+    }
+  }, [predictionData]);
 
   const startPredict = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { deviceId: selectedDevice },
       });
+      initAudioContext();
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         await videoRef.current.play(); // wait for video playing
@@ -115,6 +204,7 @@ export default function Home() {
   };
 
   const stopPredict = () => {
+    stopAlertSound();
     if (videoRef.current && videoRef.current.srcObject) {
       const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
       tracks.forEach(track => track.stop());
@@ -123,7 +213,6 @@ export default function Home() {
       setIsPolling(false); // stop polling
     }
   };
-
 
   console.log('fire detection result:', predictionData);
 
@@ -165,6 +254,15 @@ export default function Home() {
         playsInline
         className="max-w-full h-auto"
       />
+    
     </div>
   );
 }
+
+// CSS 추가
+<style jsx>{`
+  @keyframes blink {
+    0%, 100% { border-color: red; }
+    50% { border-color: transparent; }
+  }
+`}</style>
