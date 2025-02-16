@@ -1,57 +1,40 @@
 # Real-Time Fire Detection with YOLO, FastAPI & Next.js: Build Your Own FlameGuard App
 
+## Conda CLI
+- [Conda CLI Documentation](https://docs.anaconda.com/navigator/tutorials/manage-environments/)
 
-
-
-# conda cli
-https://docs.anaconda.com/navigator/tutorials/manage-environments/
-
-
-
-
-# conda 가상환경 관리
+### Conda Environment Management
+```bash
 conda env list
-conda create -n flameguard python=3.9
+# In backend directory
+conda create -n flameguard python=3.9 --file requirements.txt
 conda activate flameguard
 conda deactivate
 conda env remove --name flameguard
+```
 
+## YOLO
+- [YOLO Official Website](https://www.ultralytics.com/)
+- [YOLO 11 Documentation](https://docs.ultralytics.com/models/yolo11/)
 
+## Roboflow
+- [Roboflow Website](https://roboflow.com/)
+- [Roboflow Universe](https://universe.roboflow.com/)
 
+### YOLO Training Method
+1. Find a training dataset on Universe
+2. Download the training dataset
+3. Train with the downloaded dataset
+4. Copy the `best.pt` file
+5. Add the copied `best.pt` file to the project
+6. Use the `best.pt` file added to the project
+7. Test with the `best.pt` file
 
+## Backend
 
+### FastAPI
 
-# yolo
-https://www.ultralytics.com/
-
-
-### yolo 11 documentation
-https://docs.ultralytics.com/models/yolo11/
-
-### roboflow
-https://roboflow.com/
-
-### roboflow universe
-https://universe.roboflow.com/
-
-
-### yolo 학습방법
-1. universe에서 학습데이터셋 찾기
-2. 학습데이터셋 다운로드
-3. 다운로드 받은 학습데이터셋으로 학습
-4. best.pt 파일복사
-5. 복사한 best.pt 파일을 프로젝트에 추가
-6. 프로젝트에 추가한 best.pt 파일을 사용
-7. best.pt파일로 테스트
-
-
-
-
-# backend
-
-## FastAPI
-
-### run
+#### Run
 ```bash
 cd backend/app
 ```
@@ -66,11 +49,9 @@ or
 uvicorn main:app --reload
 ```
 
+### API Structure
 
-
-
-## API structure
-
+```
 app/
  ├── main.py
  ├── api/
@@ -92,14 +73,10 @@ app/
  │   │   ├── crud.py
  │   ├── share_crud.py        # 🟡 DB related share logic
  │   ├── share_schema.py      # 🟡 Pydantic share response/request schema
- 
+```
 
-
-
-
-# frontend
-
-
-### requirements
-1. 기기의 모든 카메라 목록을 리스트로 받아와서 선택된 카메로 영상을 캡쳐하고 실시간으로 화면에 표현한다.
-2. 
+## Frontend
+```bash
+pnpm install
+pnpm run dev
+```
