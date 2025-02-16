@@ -65,4 +65,9 @@ for api in api_dir.iterdir():
 
 # serve log folder as static files
 log_directory = os.path.join(os.path.dirname(__file__), "log")
+
+# log 폴더가 없으면 생성
+if not os.path.exists(log_directory):
+    os.makedirs(log_directory)
+
 app.mount("/log", StaticFiles(directory=log_directory), name="log")
