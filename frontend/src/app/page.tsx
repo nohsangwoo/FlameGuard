@@ -1,6 +1,7 @@
 'use client';
 import { useState, useRef, useEffect } from "react";
 import { useQuery } from '@tanstack/react-query';
+import { motion } from 'framer-motion';
 
 export default function Home() {
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
@@ -111,7 +112,7 @@ export default function Home() {
         const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
         audioContextRef.current = new AudioContext();
 
-        // iOS Safari를 위한 처리
+        // iOS Safari for processing
         if (audioContextRef.current.state === 'suspended') {
           await audioContextRef.current.resume();
         }
@@ -127,7 +128,7 @@ export default function Home() {
     }
   };
 
-  // 알람 중지
+  // stop alert sound
   const stopAlertSound = () => {
     if (sourceNodeRef.current) {
         sourceNodeRef.current.stop();
@@ -138,7 +139,7 @@ export default function Home() {
     }
   };
 
-  // 공습경보 사운드 생성 및 재생
+  // alert sound generation and playback
   const playAlertSound = () => {
     if (!audioContextRef.current) return;
     stopAlertSound();
@@ -149,22 +150,22 @@ export default function Home() {
     oscillator.type = 'sawtooth';
     oscillator.frequency.setValueAtTime(440, audioContextRef.current.currentTime);
 
-    // 주파수 변조
+    // frequency modulation
     oscillator.frequency.setValueAtTime(440, audioContextRef.current.currentTime);
     oscillator.frequency.linearRampToValueAtTime(880, audioContextRef.current.currentTime + 0.5);
     oscillator.frequency.linearRampToValueAtTime(440, audioContextRef.current.currentTime + 1);
 
-    // 볼륨 조절
+    // volume adjustment
     gainNodeRef.current.gain.setValueAtTime(0.5, audioContextRef.current.currentTime);
 
     oscillator.connect(gainNodeRef.current);
     gainNodeRef.current.connect(audioContextRef.current.destination);
 
     oscillator.start();
-    sourceNodeRef.current = oscillator; // OscillatorNode로 할당
+    sourceNodeRef.current = oscillator; //OscillatorNode로 할당
   };
 
-  // 화재 감지 시 알림 및 효과
+  // fire detected
   useEffect(() => {
     if (predictionData?.message === "fire detected") {
       playAlertSound();
@@ -181,8 +182,8 @@ export default function Home() {
             <path d="M12 2c0 6-8 7.5-8 14a8 8 0 0 0 16 0c0-6.5-8-8-8-14z"/>
           </svg>
           <div>
-            <div class="font-semibold mb-0.5">화재 감지</div>
-            <div class="text-sm opacity-90">화재가 감지되었습니다. 즉시 확인해주세요.</div>
+            <div class="font-semibold mb-0.5">fire detected</div>
+            <div class="text-sm opacity-90">fire detected. please check immediately.</div>
           </div>
         </div>
       `;
@@ -227,7 +228,7 @@ export default function Home() {
     try {
       const audioInitialized = await initAudioContext();
       if (!audioInitialized) {
-        console.log('오디오 권한이 거부되었습니다.');
+        console.log('audio permission denied');
         return;
       }
 
@@ -261,44 +262,62 @@ export default function Home() {
   console.log('fire detection result:', predictionData);
 
   return (
-    <div className="grid grid-rows-[auto_1fr_auto] gap-4 items-center justify-items-center min-h-screen p-8">
-      <div className="space-y-4">
-        <select
+    <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-900 text-white">
+      <div className="space-y-4 w-full max-w-md">
+        <motion.select
           value={selectedDevice}
           onChange={(e) => setSelectedDevice(e.target.value)}
-          className="border p-2 rounded"
+          className="w-full border border-gray-700 p-2 rounded-md shadow-sm bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
         >
           {devices.map((device) => (
             <option key={device.deviceId} value={device.deviceId}>
               {device.label || `Camera ${device.deviceId.slice(0, 5)}...`}
             </option>
           ))}
-        </select>
+        </motion.select>
 
         {!isStreaming ? (
-          <button
+          <motion.button
             onClick={startPredict}
-            className="block px-4 py-2 bg-blue-500 text-white rounded"
+            className="w-full px-4 py-2 bg-blue-600 text-white rounded-md shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            start stream
-          </button>
+            Start Stream
+          </motion.button>
         ) : (
-          <button
+          <motion.button
             onClick={stopPredict}
-            className="block px-4 py-2 bg-red-500 text-white rounded"
+            className="w-full px-4 py-2 bg-red-600 text-white rounded-md shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            stop stream
-          </button>
+            Stop Stream
+          </motion.button>
         )}
+
+        <motion.button
+          onClick={() => window.location.href = '/detectionLogs'}
+          className="w-full px-4 py-2 bg-green-600 text-white rounded-md shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          View Detection Logs
+        </motion.button>
       </div>
 
-      <video
+      <motion.video
         ref={videoRef}
         autoPlay
         playsInline
-        className="max-w-full h-auto"
+        className="w-full max-w-md h-auto mt-4 rounded-md shadow-lg bg-black"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
       />
-    
     </div>
   );
 }
